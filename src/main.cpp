@@ -3,9 +3,9 @@
 //----------------------------------------------------------------------------------------------------------------DRIVETRAIN CONFIG-----------------------------------------------------------------------------------------------------------------
 
 // left motor group
-pros::MotorGroup left_motor_group({"ADD PORTS"}, pros::MotorGears::blue);
+pros::MotorGroup left_motor_group({-1, -4, -5}, pros::MotorGears::blue);
 // right motor group
-pros::MotorGroup right_motor_group({"ADD PORTS"}, pros::MotorGears::blue);
+pros::MotorGroup right_motor_group({7, 8, 9}, pros::MotorGears::blue);
 
 // drivetrain settings
 lemlib::Drivetrain drivetrain(&left_motor_group, // left motor group
@@ -19,11 +19,11 @@ lemlib::Drivetrain drivetrain(&left_motor_group, // left motor group
 //----------------------------------------------------------------------------------------------------------------ODOMETRY CONFIG-----------------------------------------------------------------------------------------------------------------
 
 // imu
-pros::Imu imu("ADD PORT");
+pros::Imu imu(2);
 // horizontal tracking wheel encoder
-pros::Rotation horizontal_encoder("ADD PORT"));
+pros::Rotation horizontal_encoder(6);
 // horizontal tracking wheel
-lemlib::TrackingWheel horizontal_tracking_wheel(&horizontal_encoder, lemlib::Omniwheel::NEW_2, "ADD OFFSET OR ASK ME IN CAD");
+lemlib::TrackingWheel horizontal_tracking_wheel(&horizontal_encoder, lemlib::Omniwheel::NEW_2, 0.6875);
 
 // odometry settings
 lemlib::OdomSensors sensors(nullptr, // vertical tracking wheel 1, set to null
@@ -121,20 +121,24 @@ void competition_initialize() {}
  * Runs the user autonomous code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
  * the Field Management System or the VEX Competition Switch in the autonomous
- * mode. Alternatively, this function may be called in initialize or opcontrol
+ * mode. Aylternatively, this function may be called in initialize or opcontrol
  * for non-competition testing purposes.
  *
  * If the robot is disabled or communications is lost, the autonomous task
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+    // chassis.moveToPoint(0, 0, 5000);
+chassis.moveToPoint(-47.217, -23.413, 5000);
 
-/**
+
+}
+/*  
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
  * the Field Management System or the VEX Competition Switch in the operator
- * control mode.
+ * control mode. 
  *
  * If no competition control is connected, this function will run immediately
  * following initialize().
