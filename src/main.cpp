@@ -15,6 +15,23 @@ lemlib::Drivetrain drivetrain(&left_motor_group, // left motor group
                               360, // drivetrain rpm is 360
                               2 // horizontal drift is 2 (for now)
 );
+//SUBSYTEMS and their variables
+inline pros::Motor intakeMotors {-3};//intake
+double intakeSpeed = 600; //defualts to full speed
+
+inline pros::ADIDigitalOut clampCylinder('H');//mogo clamp
+bool clampState = false;
+
+inline pros::ADIDigitalOut leftSweeperCylinder('G');//left sweeper
+bool leftSweeperState = false;
+
+inline pros::Optical colorSensor(19); //color sensor
+
+//code for arm config
+const int heights[3] = {2, 90, 700};//different lift heights --- tunable
+int positionIndex = 0;
+auto armControl = AsyncPosControllerBuilder().withMotor({20, -11}).build(); //cookn up smth vicious
+
 
 //----------------------------------------------------------------------------------------------------------------ODOMETRY CONFIG-----------------------------------------------------------------------------------------------------------------
 
@@ -129,9 +146,14 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-    // chassis.moveToPoint(0, 0, 5000);
-chassis.moveToPoint(-47.217, -23.413, 5000);
+    int defualtTimeout = 1000;
 
+    chassis.setPose(65.17, 12.5, 180);//start pos -- 0 degrees is facing the cage
+    chassis.turnToHeading(134, defualtTimeout);//turn to allaince stake
+    pros::delay(75);//this is the time between the start of auton and the start of the wall stakes motion - tunable
+    armControl->setTarget(heights[2]);//raising arm
+    pros::delay(125);//time to let arm finish motion - tunable
+    chassis.moveToPose(68.17, 12.5, 0, defualtTimeout);
 
 }
 /*  
@@ -150,6 +172,8 @@ chassis.moveToPoint(-47.217, -23.413, 5000);
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 void opcontrol() {
+    
+    armControl->setMaxVelocity(165);//tuneable
     // loop forever
     while (true) {
         // get left y and right x positions
@@ -161,5 +185,31 @@ void opcontrol() {
 
         // delay to save resources
         pros::delay(25);
+
+        if (controller.get_digital(DIGITAL_R1))
+            intakeMotors.move_velocity(intakeSpeed);
+        else if (controller.get_digital(DIGITAL_R2))
+            intakeMotors.move_velocity(-intakeSpeed);
+        else 
+            intakeMotors.move_velocity(0);
+        if (controller.get_digital_new_press(DIGITAL_Y))
+        {
+            clampCylinder.set_value(!clampState); 
+            clampState = !clampState;
+        }
+        if (controller.get_digital_new_press(DIGITAL_LEFT))
+        {
+            leftSweeperCylinder.set_value(!leftSweeperState); 
+            leftSweeperState = !leftSweeperState;
+        }
+        if (controller.get_digital_new_press(DIGITAL_L1) && positionIndex != 2){
+            intakeSpeed = 600;
+            positionIndex++;
+            armControl->setTarget(heights[positionIndex]);//raising arm 1 state
+        }
+        if (controller.get_digital_new_press(DIGITAL_L2) && positionIndex != 0){
+            positionIndex--; 
+            armControl->setTarget(heights[positionIndex]);//dropping arm 1 state
+        }
     }
 }
